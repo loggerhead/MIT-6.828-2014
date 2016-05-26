@@ -54,13 +54,15 @@ stab_binsearch(const struct Stab *stabs, int *region_left, int *region_right,
 	int l = *region_left, r = *region_right, any_matches = 0;
 
 	while (l <= r) {
-		int true_m = (l + r) / 2, m = true_m;
+		int true_m = (l + r) / 2;
+		int m = true_m;
 
 		// search for earliest stab with right type
 		while (m >= l && stabs[m].n_type != type)
 			m--;
-		if (m < l) {	// no match in [l, m]
-			l = true_m + 1;
+		// no match in [l, m]
+		if (m < l) {
+		    l = true_m + 1;
 			continue;
 		}
 
@@ -124,7 +126,7 @@ debuginfo_eip(uintptr_t addr, struct Eipdebuginfo *info)
 		stabstr_end = __STABSTR_END__;
 	} else {
 		// Can't search for user-level addresses yet!
-  	        panic("User address");
+        panic("User address");
 	}
 
 	// String table validity checks
@@ -180,6 +182,12 @@ debuginfo_eip(uintptr_t addr, struct Eipdebuginfo *info)
 	//	which one.
 	// Your code here.
 
+	stab_binsearch(stabs, &lline, &rline, N_SLINE, addr);
+	if (lline <= rline) {
+		info->eip_line = stabs[lline].n_desc;
+	} else {
+		return -1;
+	}
 
 	// Search backwards from the line number for the relevant filename
 	// stab.
