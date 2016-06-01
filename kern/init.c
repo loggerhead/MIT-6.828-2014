@@ -1,5 +1,3 @@
-/* See COPYRIGHT for copyright information. */
-
 #include <inc/stdio.h>
 #include <inc/string.h>
 #include <inc/assert.h>
@@ -15,11 +13,13 @@
 void
 i386_init(void)
 {
+	// 0xf0112300, 0xf0112944
 	extern char edata[], end[];
 
 	// Before doing anything else, complete the ELF loading process.
 	// Clear the uninitialized global data (BSS) section of our program.
 	// This ensures that all static/global variables start out zero.
+	//	   esp, esp-0x4, esp-0x8
 	memset(edata, 0, end - edata);
 
 	// Initialize the console.

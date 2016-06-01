@@ -1,5 +1,3 @@
-/* See COPYRIGHT for copyright information. */
-
 #include <inc/x86.h>
 #include <inc/memlayout.h>
 #include <inc/kbdreg.h>
@@ -30,20 +28,20 @@ delay(void)
 #define COM_DLL		0	// Out: Divisor Latch Low (DLAB=1)
 #define COM_DLM		1	// Out: Divisor Latch High (DLAB=1)
 #define COM_IER		1	// Out: Interrupt Enable Register
-#define   COM_IER_RDI	0x01	//   Enable receiver data interrupt
+#define COM_IER_RDI	0x01	//   Enable receiver data interrupt
 #define COM_IIR		2	// In:	Interrupt ID Register
 #define COM_FCR		2	// Out: FIFO Control Register
 #define COM_LCR		3	// Out: Line Control Register
-#define	  COM_LCR_DLAB	0x80	//   Divisor latch access bit
-#define	  COM_LCR_WLEN8	0x03	//   Wordlength: 8 bits
+#define	COM_LCR_DLAB	0x80	//   Divisor latch access bit
+#define	COM_LCR_WLEN8	0x03	//   Wordlength: 8 bits
 #define COM_MCR		4	// Out: Modem Control Register
-#define	  COM_MCR_RTS	0x02	// RTS complement
-#define	  COM_MCR_DTR	0x01	// DTR complement
-#define	  COM_MCR_OUT2	0x08	// Out2 complement
+#define	COM_MCR_RTS	0x02	// RTS complement
+#define	COM_MCR_DTR	0x01	// DTR complement
+#define	COM_MCR_OUT2	0x08	// Out2 complement
 #define COM_LSR		5	// In:	Line Status Register
-#define   COM_LSR_DATA	0x01	//   Data available
-#define   COM_LSR_TXRDY	0x20	//   Transmit buffer avail
-#define   COM_LSR_TSRE	0x40	//   Transmitter off
+#define COM_LSR_DATA	0x01	//   Data available
+#define COM_LSR_TXRDY	0x20	//   Transmit buffer avail
+#define COM_LSR_TSRE	0x40	//   Transmitter off
 
 static bool serial_exists;
 
@@ -99,9 +97,7 @@ serial_init(void)
 	serial_exists = (inb(COM1+COM_LSR) != 0xFF);
 	(void) inb(COM1+COM_IIR);
 	(void) inb(COM1+COM_RX);
-
 }
-
 
 
 /***** Parallel port output code *****/
@@ -119,8 +115,6 @@ lpt_putc(int c)
 	outb(0x378+2, 0x08|0x04|0x01);
 	outb(0x378+2, 0x08);
 }
-
-
 
 
 /***** Text-mode CGA/VGA display output *****/
@@ -157,8 +151,6 @@ cga_init(void)
 	crt_pos = pos;
 }
 
-
-
 static void
 cga_putc(int c)
 {
@@ -167,28 +159,28 @@ cga_putc(int c)
 		c |= 0x0700;
 
 	switch (c & 0xff) {
-	case '\b':
-		if (crt_pos > 0) {
-			crt_pos--;
-			crt_buf[crt_pos] = (c & ~0xff) | ' ';
-		}
-		break;
-	case '\n':
-		crt_pos += CRT_COLS;
-		/* fallthru */
-	case '\r':
-		crt_pos -= (crt_pos % CRT_COLS);
-		break;
-	case '\t':
-		cons_putc(' ');
-		cons_putc(' ');
-		cons_putc(' ');
-		cons_putc(' ');
-		cons_putc(' ');
-		break;
-	default:
-		crt_buf[crt_pos++] = c;		/* write the character */
-		break;
+		case '\b':
+			if (crt_pos > 0) {
+				crt_pos--;
+				crt_buf[crt_pos] = (c & ~0xff) | ' ';
+			}
+			break;
+		case '\n':
+			crt_pos += CRT_COLS;
+			/* fallthru */
+		case '\r':
+			crt_pos -= (crt_pos % CRT_COLS);
+			break;
+		case '\t':
+			cons_putc(' ');
+			cons_putc(' ');
+			cons_putc(' ');
+			cons_putc(' ');
+			cons_putc(' ');
+			break;
+		default:
+			crt_buf[crt_pos++] = c;		/* write the character */
+			break;
 	}
 
 	// What is the purpose of this?
@@ -372,7 +364,6 @@ kbd_init(void)
 }
 
 
-
 /***** General device-independent console code *****/
 // Here we manage the console input buffer,
 // where we stash characters received from the keyboard or serial port
@@ -445,9 +436,7 @@ cons_init(void)
 		cprintf("Serial port does not exist!\n");
 }
 
-
 // `High'-level console I/O.  Used by readline and cprintf.
-
 void
 cputchar(int c)
 {
