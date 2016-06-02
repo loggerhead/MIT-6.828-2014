@@ -58,15 +58,47 @@ static const char *trapname(int trapno)
 	return "(unknown trap)";
 }
 
-
 void
 trap_init(void)
 {
 	extern struct Segdesc gdt[];
 
 	// LAB 3: Your code here.
+	void trap_divide();
+	void trap_brkpt();
+	void trap_oflow();
+	void trap_bound();
+	void trap_illop();
+	void trap_device();
+	void trap_dblflt();
+	void trap_tss();
+	void trap_segnp();
+	void trap_stack();
+	void trap_gpflt();
+	void trap_pgflt();
+	// SETGATE(gate, istrap, sel, off, dpl)
+	SETGATE(idt[T_DIVIDE], 1, GD_KT, trap_divide, 0);
+	// T_DEBUG    // debug exception
+	// T_NMI      // non-maskable interrupt
+	SETGATE(idt[T_BRKPT] , 1, GD_KT, trap_brkpt , 0);
+	SETGATE(idt[T_OFLOW] , 1, GD_KT, trap_oflow , 0);
+	SETGATE(idt[T_BOUND] , 1, GD_KT, trap_bound , 0);
+	SETGATE(idt[T_ILLOP] , 1, GD_KT, trap_illop , 0);
+	SETGATE(idt[T_DEVICE], 1, GD_KT, trap_device, 0);
+	// error code exists
+	SETGATE(idt[T_DBLFLT], 1, GD_KT, trap_dblflt, 0);
+	SETGATE(idt[T_TSS]   , 1, GD_KT, trap_tss,	  0);
+	SETGATE(idt[T_SEGNP] , 1, GD_KT, trap_segnp,  0);
+	SETGATE(idt[T_STACK] , 1, GD_KT, trap_stack,  0);
+	SETGATE(idt[T_GPFLT] , 1, GD_KT, trap_gpflt,  0);
+	SETGATE(idt[T_PGFLT] , 1, GD_KT, trap_pgflt,  0);
+	// T_FPERR      // floating point error
+	// T_ALIGN      // aligment check
+	// T_MCHK       // machine check
+	// T_SIMDERR    // SIMD floating point error
+	// T_SYSCALL    // system call
 
-	// Per-CPU setup 
+	// Per-CPU setup
 	trap_init_percpu();
 }
 
