@@ -60,6 +60,7 @@ TRAPHANDLER(trap_stack , T_STACK)
 TRAPHANDLER(trap_gpflt , T_GPFLT)
 TRAPHANDLER(trap_pgflt , T_PGFLT)
 
+TRAPHANDLER_NOEC(trap_syscall, T_SYSCALL)
 
 /*
  * Lab 3: Your code here for _alltraps

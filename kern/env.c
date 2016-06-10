@@ -376,6 +376,7 @@ load_icode(struct Env *e, uint8_t *binary)
 		if (ph->p_type == ELF_PROG_LOAD) {
 			region_alloc(e, (void *) ph->p_va, ph->p_memsz);
 			memcpy((void *) ph->p_va, (void *) (binary + ph->p_offset), ph->p_filesz);
+			memset((void *) (ph->p_va + ph->p_filesz), 0, ph->p_memsz - ph->p_filesz);
 		}
 	}
 
@@ -540,8 +541,6 @@ env_run(struct Env *e)
 	curenv->env_status = ENV_RUNNING;
 	curenv->env_runs++;
 	lcr3(PADDR(curenv->env_pgdir));
-
-	// ((void (*)(void)) (curenv->env_tf.tf_eip))();
 	env_pop_tf(&curenv->env_tf);
 }
 

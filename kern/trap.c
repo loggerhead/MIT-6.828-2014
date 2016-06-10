@@ -76,6 +76,7 @@ trap_init(void)
 	void trap_stack();
 	void trap_gpflt();
 	void trap_pgflt();
+	void trap_syscall();
 	// SETGATE(gate, istrap, sel, off, dpl)
 	SETGATE(idt[T_DIVIDE], 1, GD_KT, trap_divide, 0);
 	// T_DEBUG    // debug exception
@@ -96,7 +97,7 @@ trap_init(void)
 	// T_ALIGN      // aligment check
 	// T_MCHK       // machine check
 	// T_SIMDERR    // SIMD floating point error
-	// T_SYSCALL    // system call
+	SETGATE(idt[T_SYSCALL], 1, GD_KT, trap_syscall, 3);
 
 	// Per-CPU setup
 	trap_init_percpu();
@@ -184,6 +185,15 @@ trap_dispatch(struct Trapframe *tf)
 		case T_PGFLT:
 			page_fault_handler(tf);
 			break;
+		case T_SYSCALL:
+			// syscall in kern/syscall.c
+			tf->tf_regs.reg_eax = syscall(tf->tf_regs.reg_eax,
+										  tf->tf_regs.reg_edx,
+										  tf->tf_regs.reg_ecx,
+										  tf->tf_regs.reg_ebx,
+										  tf->tf_regs.reg_edi,
+										  tf->tf_regs.reg_esi);
+			return;
 	}
 
 	// Unexpected trap: The user process or the kernel has a bug.
