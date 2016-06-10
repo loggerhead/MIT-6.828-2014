@@ -80,7 +80,7 @@ trap_init(void)
 	SETGATE(idt[T_DIVIDE], 1, GD_KT, trap_divide, 0);
 	// T_DEBUG    // debug exception
 	// T_NMI      // non-maskable interrupt
-	SETGATE(idt[T_BRKPT] , 1, GD_KT, trap_brkpt , 0);
+	SETGATE(idt[T_BRKPT] , 1, GD_KT, trap_brkpt , 3);
 	SETGATE(idt[T_OFLOW] , 1, GD_KT, trap_oflow , 0);
 	SETGATE(idt[T_BOUND] , 1, GD_KT, trap_bound , 0);
 	SETGATE(idt[T_ILLOP] , 1, GD_KT, trap_illop , 0);
@@ -176,6 +176,9 @@ trap_dispatch(struct Trapframe *tf)
 	// Handle processor exceptions.
 	// LAB 3: Your code here.
 	switch (tf->tf_trapno) {
+		case T_BRKPT:
+			monitor(tf);
+			break;
 		case T_GPFLT:
 			break;
 		case T_PGFLT:
