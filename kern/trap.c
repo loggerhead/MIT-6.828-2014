@@ -184,7 +184,7 @@ trap_dispatch(struct Trapframe *tf)
 			break;
 		case T_PGFLT:
 			page_fault_handler(tf);
-			break;
+			return;
 		case T_SYSCALL:
 			// syscall in kern/syscall.c
 			tf->tf_regs.reg_eax = syscall(tf->tf_regs.reg_eax,
@@ -256,6 +256,9 @@ page_fault_handler(struct Trapframe *tf)
 	// Handle kernel-mode page faults.
 
 	// LAB 3: Your code here.
+	if ((tf->tf_cs & 3) == 0) {
+		panic("page_fault_handler: a page fault happened in kernel mode\n");
+	}
 
 	// We've already handled kernel-mode exceptions, so if we get here,
 	// the page fault happened in user mode.
