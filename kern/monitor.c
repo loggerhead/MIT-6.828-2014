@@ -30,6 +30,8 @@ static struct Command commands[] = {
 	{ "backtrace", "Display the stack backtrace", mon_backtrace },
 	{ "showmappings", "Display VA to PA mappings", mon_showmappings },
 	{ "dumpva", "Display VA contents", mon_dumpva },
+	{ "continue", "Continue execution", mon_continue },
+	{ "single_step", "Execute one instruction", mon_single_step },
 };
 #define NCOMMANDS (sizeof(commands)/sizeof(commands[0]))
 
@@ -95,7 +97,7 @@ mon_showmappings(int argc, char **argv, struct Trapframe *tf)
 {
 	if (argc != 3) {
 		cprintf("Usage: showmappings <begin_va> <end_va>\n");
-		return 1;
+		return -1;
 	}
 
 	char *tokens[] = {
@@ -139,7 +141,7 @@ mon_dumpva(int argc, char **argv, struct Trapframe *tf)
 {
 	if (argc != 3) {
 		cprintf("Usage: dumpva <begin_va> <end_va>\n");
-		return 1;
+		return -1;
 	}
 
 	uintptr_t begin = strtol(argv[1], NULL, 16);
@@ -159,6 +161,21 @@ mon_dumpva(int argc, char **argv, struct Trapframe *tf)
 	}
 
 	return 0;
+}
+
+// Lab 3 challenge
+int
+mon_continue(int argc, char **argv, struct Trapframe *tf)
+{
+	tf->tf_eflags &= ~FL_TF;
+	return -1;
+}
+
+int
+mon_single_step(int argc, char **argv, struct Trapframe *tf)
+{
+	tf->tf_eflags |= FL_TF;
+	return -1;
 }
 
 /***** Kernel monitor command interpreter *****/

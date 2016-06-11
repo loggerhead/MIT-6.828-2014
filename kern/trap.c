@@ -77,9 +77,10 @@ trap_init(void)
 	void trap_gpflt();
 	void trap_pgflt();
 	void trap_syscall();
+	void trap_debug();
 	// SETGATE(gate, istrap, sel, off, dpl)
 	SETGATE(idt[T_DIVIDE], 1, GD_KT, trap_divide, 0);
-	// T_DEBUG    // debug exception
+	SETGATE(idt[T_DEBUG] , 1, GD_KT, trap_debug , 0);
 	// T_NMI      // non-maskable interrupt
 	SETGATE(idt[T_BRKPT] , 1, GD_KT, trap_brkpt , 3);
 	SETGATE(idt[T_OFLOW] , 1, GD_KT, trap_oflow , 0);
@@ -179,8 +180,12 @@ trap_dispatch(struct Trapframe *tf)
 	switch (tf->tf_trapno) {
 		case T_BRKPT:
 			monitor(tf);
-			break;
+			return;
+		case T_DEBUG:
+			monitor(tf);
+			return;
 		case T_GPFLT:
+			monitor(tf);
 			break;
 		case T_PGFLT:
 			page_fault_handler(tf);
