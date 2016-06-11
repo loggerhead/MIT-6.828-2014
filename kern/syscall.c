@@ -21,8 +21,7 @@ sys_cputs(const char *s, size_t len)
 	// Destroy the environment if not.
 
 	// LAB 3: Your code here.
-	// PTE_P | PTE_W | PTE_U
-	user_mem_assert(curenv, s, len, PTE_SYSCALL);
+	user_mem_assert(curenv, s, len, PTE_P | PTE_U);
 
 	// Print the string supplied by the user.
 	cprintf("%.*s", len, s);
