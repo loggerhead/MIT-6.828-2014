@@ -1,5 +1,3 @@
-/* See COPYRIGHT for copyright information. */
-
 #include <inc/stdio.h>
 #include <inc/string.h>
 #include <inc/assert.h>
@@ -21,11 +19,13 @@ static void boot_aps(void);
 void
 i386_init(void)
 {
+	// 0xf0112300, 0xf0112944
 	extern char edata[], end[];
 
 	// Before doing anything else, complete the ELF loading process.
 	// Clear the uninitialized global data (BSS) section of our program.
 	// This ensures that all static/global variables start out zero.
+	//	   esp, esp-0x4, esp-0x8
 	memset(edata, 0, end - edata);
 
 	// Initialize the console.
@@ -88,7 +88,7 @@ boot_aps(void)
 		if (c == cpus + cpunum())  // We've started already.
 			continue;
 
-		// Tell mpentry.S what stack to use 
+		// Tell mpentry.S what stack to use
 		mpentry_kstack = percpu_kstacks[c - cpus] + KSTKSIZE;
 		// Start the CPU at mpentry_start
 		lapic_startap(c->cpu_id, PADDR(code));
@@ -102,7 +102,7 @@ boot_aps(void)
 void
 mp_main(void)
 {
-	// We are in high EIP now, safe to switch to kern_pgdir 
+	// We are in high EIP now, safe to switch to kern_pgdir
 	lcr3(PADDR(kern_pgdir));
 	cprintf("SMP: CPU %d starting\n", cpunum());
 
