@@ -321,7 +321,6 @@ page_init(void)
 	// Change the code to reflect this.
 	// NB: DO NOT actually touch the physical memory corresponding to
 	// free pages!
-	// TODO: review again
 	size_t i;
 	// 0xA0
 	size_t io_hole_begin = IOPHYSMEM / PGSIZE;
@@ -347,6 +346,7 @@ page_init(void)
 			pages[i].pp_ref = 1;
 			pages[i].pp_link = NULL;
 		// 4) 0x100 <= i < 0x400 (0xF0400000)
+		// TODO: why this part can be difference
 		} else if (io_hole_end <= i && i < kernel_end) {
 			pages[i].pp_ref = 1;
 			pages[i].pp_link = NULL;

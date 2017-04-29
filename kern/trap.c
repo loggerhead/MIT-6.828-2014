@@ -152,11 +152,12 @@ trap_init_percpu(void)
 
 	// Initialize the TSS slot of the gdt.
 	uint16_t gdt_i = (GD_TSS0 >> 3) + i;
-	gdt[gdt_i] = SEG16(STS_T32A, (uint32_t) thiscpu, sizeof(struct Taskstate) - 1, 0);
+	gdt[gdt_i] = SEG16(STS_T32A, (uint32_t) (&thiscpu->cpu_ts), sizeof(struct Taskstate) - 1, 0);
 	gdt[gdt_i].sd_s = 0;
 
 	// Load the TSS selector (like other segment selectors, the
 	// bottom three bits are special; we leave them 0)
+	// TODO: figure this out
 	ltr(GD_TSS0 + thiscpu->cpu_id * sizeof(struct Segdesc));
 
 	// Load the IDT
@@ -283,6 +284,7 @@ trap(struct Trapframe *tf)
 		// serious kernel work.
 		// LAB 4: Your code here.
 		assert(curenv);
+		lock_kernel();
 
 		// Garbage collect if current enviroment is a zombie
 		if (curenv->env_status == ENV_DYING) {
