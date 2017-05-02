@@ -331,7 +331,7 @@ page_init(void)
 	page_free_list = NULL;
 
 	// i < 0x40FF
-	for (i = 1; i < npages; i++) {
+	for (i = 0; i < npages; i++) {
 		// 1)
 		if (i == 0 || i == mpentry_pgnum) {
 			pages[i].pp_ref = 1;
