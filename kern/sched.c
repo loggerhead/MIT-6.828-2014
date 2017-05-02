@@ -29,7 +29,7 @@ sched_yield(void)
 	// below to halt the cpu.
 
 	// LAB 4: Your code here.
-	int begin = thiscpu->cpu_env? ENVX(thiscpu->cpu_env->env_id) + 1: 0;
+	int begin = curenv? ENVX(curenv->env_id) + 1: 0;
 	int next = begin;
 	do {
 		if (envs[next].env_status == ENV_RUNNABLE) {
@@ -38,6 +38,12 @@ sched_yield(void)
 			next = (next + 1) % NENV;
 		}
 	} while (next != begin);
+
+	// if circle back to the beginning,
+	// then next = ENVX(curenv->env_id)
+	if (next == begin && begin > 0) {
+		next = begin - 1;
+	}
 
 	if (envs[next].env_status == ENV_RUNNABLE
 	    || envs[next].env_status == ENV_RUNNING) {
