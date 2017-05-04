@@ -157,7 +157,7 @@ trap_init_percpu(void)
 
 	// Load the TSS selector (like other segment selectors, the
 	// bottom three bits are special; we leave them 0)
-	// TODO: figure this out
+	// TODO: why `ltr(GD_TSS0 + thiscpu->cpu_id * sizeof(struct Segdesc))`?
 	ltr(GD_TSS0 + thiscpu->cpu_id * sizeof(struct Segdesc));
 
 	// Load the IDT
@@ -388,6 +388,7 @@ page_fault_handler(struct Trapframe *tf)
 	}
 	user_mem_assert(curenv, (const void *) exception_stack_bottom, 1, PTE_W);
 
+	// TODO: why can we access `exception_stack_bottom` in kernel address space?
 	struct UTrapframe *utf = (struct UTrapframe *) exception_stack_bottom;
 	utf->utf_esp = esp;
 	utf->utf_eflags = tf->tf_eflags;

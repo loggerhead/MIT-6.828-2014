@@ -54,7 +54,13 @@ int	sys_page_unmap(envid_t env, void *pg);
 int	sys_ipc_try_send(envid_t to_env, uint32_t value, void *pg, int perm);
 int	sys_ipc_recv(void *rcv_pg);
 
-// This must be inlined.  Exercise for reader: TODO: why?
+// This must be inlined.  Exercise for reader: why?
+
+// Because the calling of `duppage` in `fork` function (in lib/fork.c) will OVERWRITE
+// the user stack of the child env. if `sys_exofork` is a normal function,
+// then the calling stack of `sys_exofork` in the child env would be changed,
+// and because the EIP register is pushed into the calling stack for returning,
+// so the `return` will return to a error address for the child env.
 static __inline envid_t __attribute__((always_inline))
 sys_exofork(void)
 {

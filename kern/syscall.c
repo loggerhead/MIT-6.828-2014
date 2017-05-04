@@ -238,7 +238,7 @@ sys_page_map(envid_t srcenvid, void *srcva,
 		return -E_INVAL;
 	}
 	// -E_INVAL if perm is inappropriate (see sys_page_alloc).
-	if ((perm | PTE_AVAIL | PTE_W) != PTE_SYSCALL) {
+	if (((perm | PTE_AVAIL | PTE_W) & PTE_SYSCALL) != PTE_SYSCALL) {
 		return -E_INVAL;
 	}
 
@@ -261,7 +261,7 @@ sys_page_map(envid_t srcenvid, void *srcva,
 		return -E_INVAL;
 	}
 	// -E_INVAL if (perm & PTE_W), but srcva is read-only in srcenvid's address space.
-	if ((perm & PTE_W) && (*ppte & PTE_W) == 0) {
+	if ((perm & PTE_W) == PTE_W && (*ppte & PTE_W) == 0) {
 		return -E_INVAL;
 	}
 

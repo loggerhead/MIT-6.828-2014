@@ -346,7 +346,6 @@ page_init(void)
 			pages[i].pp_ref = 1;
 			pages[i].pp_link = NULL;
 		// 4) 0x100 <= i < 0x400 (0xF0400000)
-		// TODO: why this part can be difference
 		} else if (io_hole_end <= i && i < kernel_end) {
 			pages[i].pp_ref = 1;
 			pages[i].pp_link = NULL;
