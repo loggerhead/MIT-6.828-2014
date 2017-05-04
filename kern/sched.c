@@ -29,24 +29,19 @@ sched_yield(void)
 	// below to halt the cpu.
 
 	// LAB 4: Your code here.
-	int begin = curenv? ENVX(curenv->env_id) + 1: 0;
-	int next = begin;
-	do {
+	// found the next runnable env
+	int begin = curenv? ENVX(curenv->env_id): 0;
+	int next = begin + 1;
+	for (; next != begin; next = (next + 1) % NENV) {
 		if (envs[next].env_status == ENV_RUNNABLE) {
 			break;
-		} else {
-			next = (next + 1) % NENV;
 		}
-	} while (next != begin);
-
-	// if circle back to the beginning,
-	// then next = ENVX(curenv->env_id)
-	if (next == begin && begin > 0) {
-		next = begin - 1;
 	}
 
 	if (envs[next].env_status == ENV_RUNNABLE
-	    || envs[next].env_status == ENV_RUNNING) {
+	    // if don't exists any runnable env,
+	    // then run the currently running env
+	    || (curenv == &envs[next] && envs[next].env_status == ENV_RUNNING)) {
 		if (curenv) {
 			curenv->env_status = ENV_RUNNABLE;
 		}

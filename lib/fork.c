@@ -90,7 +90,7 @@ duppage(envid_t envid, unsigned pn)
 #define SYS_PAGE_MAP(src_env_id, dst_env_id, va, perm) do { \
 	    int r = sys_page_map(src_env_id, va, dst_env_id, va, perm); \
 	    if (r < 0) { \
-		    panic("duppage failed: sys_page_map(%d, %p, %d, %p, %x)", \
+		    panic("duppage failed: sys_page_map(0x%x, %p, 0x%x, %p, 0x%x)", \
 			  src_env_id, va, dst_env_id, va, perm); \
 	    } \
 	} while (0)

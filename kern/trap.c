@@ -91,6 +91,13 @@ trap_init(void)
 	void trap_simderr();
 	void trap_syscall();
 
+	void irq_timer();
+	void irq_kbd();
+	void irq_serial();
+	void irq_spurious();
+	void irq_ide();
+	void irq_error();
+
 	// SETGATE(gate, istrap, sel, off, dpl)
 	SETGATE(idt[T_DIVIDE], 0, GD_KT, trap_divide, 0);
 	SETGATE(idt[T_DEBUG] , 0, GD_KT, trap_debug , 0);
@@ -112,6 +119,13 @@ trap_init(void)
 
 	SETGATE(idt[T_BRKPT], 0, GD_KT, trap_brkpt, 3);
 	SETGATE(idt[T_SYSCALL], 0, GD_KT, trap_syscall, 3);
+
+	SETGATE(idt[IRQ_OFFSET + IRQ_TIMER], 0, GD_KT, irq_timer, 0);
+	SETGATE(idt[IRQ_OFFSET + IRQ_KBD], 0, GD_KT, irq_kbd, 0);
+	SETGATE(idt[IRQ_OFFSET + IRQ_SERIAL], 0, GD_KT, irq_serial, 0);
+	SETGATE(idt[IRQ_OFFSET + IRQ_SPURIOUS], 0, GD_KT, irq_spurious, 0);
+	SETGATE(idt[IRQ_OFFSET + IRQ_IDE], 0, GD_KT, irq_ide, 0);
+	SETGATE(idt[IRQ_OFFSET + IRQ_ERROR], 0, GD_KT, irq_error, 0);
 
 	// Per-CPU setup
 	trap_init_percpu();
@@ -245,6 +259,10 @@ trap_dispatch(struct Trapframe *tf)
 					      tf->tf_regs.reg_ebx,
 					      tf->tf_regs.reg_edi,
 					      tf->tf_regs.reg_esi);
+		break;
+	case (IRQ_OFFSET + IRQ_TIMER):
+		lapic_eoi();
+		sched_yield();
 		break;
 	default:
 		// Unexpected trap: The user process or the kernel has a bug.
