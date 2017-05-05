@@ -31,21 +31,19 @@ sched_yield(void)
 	// LAB 4: Your code here.
 	// found the next runnable env
 	int begin = curenv? ENVX(curenv->env_id): 0;
-	int next = begin + 1;
+	int next = (begin + 1) % NENV;
 	for (; next != begin; next = (next + 1) % NENV) {
 		if (envs[next].env_status == ENV_RUNNABLE) {
 			break;
 		}
 	}
 
-	if (envs[next].env_status == ENV_RUNNABLE
-	    // if don't exists any runnable env,
-	    // then run the currently running env
-	    || (curenv == &envs[next] && envs[next].env_status == ENV_RUNNING)) {
-		if (curenv) {
-			curenv->env_status = ENV_RUNNABLE;
-		}
-		curenv = &envs[next];
+	if (envs[next].env_status == ENV_RUNNABLE) {
+		env_run(&envs[next]);
+		return;
+	// if don't exists any runnable env,
+	// then run the currently running env
+	} else if (curenv && curenv->env_status == ENV_RUNNING) {
 		env_run(curenv);
 		return;
 	}
