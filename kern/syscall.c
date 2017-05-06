@@ -427,6 +427,11 @@ sys_ipc_recv(void *dstva)
 	return 0;
 }
 
+// Challenge: a fixed-priority scheduler
+void sys_env_set_priority(int priority) {
+	curenv->priority = priority;
+}
+
 // Dispatches to the correct kernel function, passing the arguments.
 int32_t
 syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)
@@ -463,6 +468,10 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 		return sys_ipc_try_send(a1, a2, (void *) a3, a4);
 	case SYS_ipc_recv:
 		return sys_ipc_recv((void *) a1);
+	// Challenge: a fixed-priority scheduler
+	case SYS_env_set_priority:
+		sys_env_set_priority(a1);
+		return 0;
 	default:
 		return -E_INVAL;
 	}

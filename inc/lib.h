@@ -53,6 +53,8 @@ int	sys_page_map(envid_t src_env, void *src_pg,
 int	sys_page_unmap(envid_t env, void *pg);
 int	sys_ipc_try_send(envid_t to_env, uint32_t value, void *pg, int perm);
 int	sys_ipc_recv(void *rcv_pg);
+// Challenge: a fixed-priority scheduler
+void    sys_env_set_priority(int priority);
 
 // This must be inlined.  Exercise for reader: why?
 
@@ -80,6 +82,8 @@ envid_t	ipc_find_env(enum EnvType type);
 
 // fork.c
 #define	PTE_SHARE	0x400
+// Challenge: a fixed-priority scheduler
+envid_t	pfork(int priority);
 envid_t	fork(void);
 envid_t	sfork(void);	// Challenge!
 

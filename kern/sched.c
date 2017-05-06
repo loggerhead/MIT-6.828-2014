@@ -32,19 +32,20 @@ sched_yield(void)
 	// found the next runnable env
 	int begin = curenv? ENVX(curenv->env_id): 0;
 	int next = (begin + 1) % NENV;
+	int runnable = begin;
 	for (; next != begin; next = (next + 1) % NENV) {
 		if (envs[next].env_status == ENV_RUNNABLE) {
-			break;
+			if (envs[runnable].env_status != ENV_RUNNABLE ||
+			    // Challenge: a fixed-priority scheduler
+			    envs[next].priority > envs[runnable].priority) {
+				runnable = next;
+			}
 		}
 	}
 
-	if (envs[next].env_status == ENV_RUNNABLE) {
-		env_run(&envs[next]);
-		return;
-	// if don't exists any runnable env,
-	// then run the currently running env
-	} else if (curenv && curenv->env_status == ENV_RUNNING) {
-		env_run(curenv);
+	unsigned status = envs[runnable].env_status;
+	if (status == ENV_RUNNABLE || (curenv == &envs[runnable] && status == ENV_RUNNING)) {
+		env_run(&envs[runnable]);
 		return;
 	}
 

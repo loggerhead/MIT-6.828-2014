@@ -125,7 +125,7 @@ duppage(envid_t envid, unsigned pn)
 //   so you must allocate a new page for the child's user exception stack.
 //
 envid_t
-fork(void)
+pfork(int priority)
 {
 	// LAB 4: Your code here.
 
@@ -144,6 +144,8 @@ fork(void)
 	// child
 	if (envid == 0) {
 		thisenv = &envs[ENVX(sys_getenvid())];
+		// Challenge: a fixed-priority scheduler
+		sys_env_set_priority(priority);
 		// cannot use `set_pgfault_handler(pgfault)` here,
 		// because the static variable will cause a page fault
 	} else {
@@ -176,6 +178,12 @@ fork(void)
 	}
 
 	return envid;
+}
+
+envid_t
+fork(void)
+{
+	return pfork(0);
 }
 
 // Challenge!
