@@ -5,7 +5,7 @@
 #	Recursive Make Considered Harmful
 #	http://aegis.sourceforge.net/auug97.pdf
 #
-OBJDIR := obj
+OBJDIR := /tmp/jos-obj
 
 # Run 'make V=1' to turn on verbose commands, or 'make V=0' to turn them off.
 ifeq ($(V),1)
