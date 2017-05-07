@@ -56,8 +56,7 @@ i386_init(void)
 	boot_aps();
 
 	// Start fs.
-	// TODO: uncomment
-	/* ENV_CREATE(fs_fs, ENV_TYPE_FS); */
+	ENV_CREATE(fs_fs, ENV_TYPE_FS);
 
 #if defined(TEST)
 	// Don't touch -- used by grading script!
