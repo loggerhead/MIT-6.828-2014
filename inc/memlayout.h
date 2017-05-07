@@ -19,19 +19,61 @@
 #define GD_TSS0   0x28     // Task segment selector for CPU 0
 
 /*
+ * Physical address space:
+ *
+ *
+ *                     +------------------+  <- 0xFFFFFFFF (4GB)
+ *                     |      32-bit      |
+ *                     |  memory mapped   |
+ *                     |     devices      |
+ *                     |                  |
+ *                     /\/\/\/\/\/\/\/\/\/\
+ *
+ *                     /\/\/\/\/\/\/\/\/\/\
+ *                     |                  |
+ *                     |      Unused      |
+ *                     |                  |
+ *                     +------------------+  <- depends on amount of RAM
+ *                     |                  |
+ *                     |                  |
+ *                     | Extended Memory  |  <- 0x00000000 ~ 0x00400000 maped by entry_pgdir
+ *                     |                  |  <- kernel used a part (0xF0100000 -> 0x00100000)
+ *                     |                  |
+ *    EXTPHYSMEM ----> +------------------+  <- 0x00100000 (1MB)
+ *                     |     BIOS ROM     |
+ *                     +------------------+  <- 0x000F0000 (960KB)
+ *                     |  16-bit devices, |
+ *                     |  expansion ROMs  |
+ *                     +------------------+  <- 0x000C0000 (768KB)
+ *                     |   VGA Display    |
+ *    IOPHYSMEM -----> +------------------+  <- 0x000A0000 (640KB)
+ *                     |                  |
+ *                     |    Low Memory    |  <- 0x7C00 to 0x7DFF (the 512-byte boot sector)
+ *                     |                  |
+ *                     +------------------+  <- 0x00000000
+ */
+
+/*
+ * 1. kernel run at 0xF0100000 (high virtual address)
+ * 2. user programs use the lower part
+ * 3. 0xF010B000 ~ 0xF0113000 used by kernel stack
+ * 4. User environments (processes) will have control over the layout and
+ *    contents of the lower part (below ULIM), while the kernel always maintains complete
+ *    control over the upper part (above ULIM).
+ *
  * Virtual memory map:                                Permissions
  *                                                    kernel/user
  *
- *    4 Gig -------->  +------------------------------+
- *                     |                              | RW/--
- *                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *                     :              .               :
- *                     :              .               :
- *                     :              .               :
- *                     |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~| RW/--
- *                     |                              | RW/--
- *                     |   Remapped Physical Memory   | RW/--
- *                     |                              | RW/--
+ *    4 Gig -------->  +------------------------------+                 --+
+ *                     |                              | RW/--             |
+ *                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~                   |
+ *                     :              .               :                   |
+ *                     :              .               : Map to 0x0 ~ 0x0fffffff (256MB)
+ *                     :              .               :                   |
+ *                     |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~| RW/--             |
+ *                     |                              | RW/--             |
+ *                     |   Remapped Physical Memory   | RW/--             |
+ *                     |                              | RW/--             |
  *    KERNBASE, ---->  +------------------------------+ 0xf0000000      --+
  *    KSTACKTOP        |     CPU0's Kernel Stack      | RW/--  KSTKSIZE   |
  *                     | - - - - - - - - - - - - - - -|                   |
@@ -45,7 +87,7 @@
  *                     :              .               :                   |
  *    MMIOLIM ------>  +------------------------------+ 0xefc00000      --+
  *                     |       Memory-mapped I/O      | RW/--  PTSIZE
- * ULIM, MMIOBASE -->  +------------------------------+ 0xef800000
+ * ULIM, MMIOBASE -->  +------------------------------+ 0xef800000 = = = = = = = = = = =
  *                     |  Cur. Page Table (User R-)   | R-/R-  PTSIZE
  *    UVPT      ---->  +------------------------------+ 0xef400000
  *                     |          RO PAGES            | R-/R-  PTSIZE
@@ -98,9 +140,9 @@
 #define KSTKGAP		(8*PGSIZE)   		// size of a kernel stack guard
 
 // Memory-mapped IO.
-#define MMIOLIM		(KSTACKTOP - PTSIZE)
+#define MMIOLIM 	(KSTACKTOP - PTSIZE)
 #define MMIOBASE	(MMIOLIM - PTSIZE)
-
+// The dividing line is defined somewhat arbitrarily by the symbol ULIM
 #define ULIM		(MMIOBASE)
 
 /*

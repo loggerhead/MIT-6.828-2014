@@ -1,5 +1,8 @@
 // test user-level fault handler -- alloc pages to fix faults
 // doesn't work because we sys_cputs instead of cprintf (exercise: why?)
+//
+// Because `sys_cputs` would call `user_mem_assert` before page fault handler
+// handle the page fault.
 
 #include <inc/lib.h>
 

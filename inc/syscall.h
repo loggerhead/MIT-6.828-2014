@@ -17,6 +17,8 @@ enum {
 	SYS_yield,
 	SYS_ipc_try_send,
 	SYS_ipc_recv,
+	// Challenge: a fixed-priority scheduler
+	SYS_env_set_priority,
 	NSYSCALLS
 };
 

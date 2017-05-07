@@ -29,6 +29,25 @@ sched_yield(void)
 	// below to halt the cpu.
 
 	// LAB 4: Your code here.
+	// found the next runnable env
+	int begin = curenv? ENVX(curenv->env_id): 0;
+	int next = (begin + 1) % NENV;
+	int runnable = begin;
+	for (; next != begin; next = (next + 1) % NENV) {
+		if (envs[next].env_status == ENV_RUNNABLE) {
+			if (envs[runnable].env_status != ENV_RUNNABLE ||
+			    // Challenge: a fixed-priority scheduler
+			    envs[next].priority > envs[runnable].priority) {
+				runnable = next;
+			}
+		}
+	}
+
+	unsigned status = envs[runnable].env_status;
+	if (status == ENV_RUNNABLE || (curenv == &envs[runnable] && status == ENV_RUNNING)) {
+		env_run(&envs[runnable]);
+		return;
+	}
 
 	// sched_halt never returns
 	sched_halt();
@@ -80,4 +99,3 @@ sched_halt(void)
 		"jmp 1b\n"
 	: : "a" (thiscpu->cpu_ts.ts_esp0));
 }
-
