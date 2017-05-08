@@ -62,7 +62,16 @@ alloc_block(void)
 	// super->s_nblocks blocks in the disk altogether.
 
 	// LAB 5: Your code here.
-	panic("alloc_block not implemented");
+	int i;
+	for (i = 1; i < super->s_nblocks; i++) {
+		uint32_t bit = 1 << (i % 32);
+		if (bitmap[i / 32] & bit) {
+			bitmap[i / 32] ^= bit;
+			flush_block(diskaddr(i));
+			return i;
+		}
+	}
+
 	return -E_NO_DISK;
 }
 
@@ -98,11 +107,11 @@ fs_init(void)
 {
 	static_assert(sizeof(struct File) == 256);
 
-       // Find a JOS disk.  Use the second IDE disk (number 1) if availabl
-       if (ide_probe_disk1())
-               ide_set_disk(1);
-       else
-               ide_set_disk(0);
+	// Find a JOS disk.  Use the second IDE disk (number 1) if availabl
+	if (ide_probe_disk1())
+		ide_set_disk(1);
+	else
+		ide_set_disk(0);
 	bc_init();
 
 	// Set "super" to point to the super block.
@@ -112,7 +121,7 @@ fs_init(void)
 	// Set "bitmap" to the beginning of the first bitmap block.
 	bitmap = diskaddr(2);
 	check_bitmap();
-	
+
 }
 
 // Find the disk block number slot for the 'filebno'th block in file 'f'.
@@ -453,4 +462,3 @@ fs_sync(void)
 	for (i = 1; i < super->s_nblocks; i++)
 		flush_block(diskaddr(i));
 }
-
