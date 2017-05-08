@@ -63,7 +63,7 @@ alloc_block(void)
 
 	// LAB 5: Your code here.
 	int i;
-	for (i = 0; i < super->s_nblocks; i++) {
+	for (i = 2; i < super->s_nblocks; i++) {
 		uint32_t bit = 1 << (i % 32);
 		if (bitmap[i / 32] & bit) {
 			bitmap[i / 32] ^= bit;
@@ -150,18 +150,21 @@ file_block_walk(struct File *f, uint32_t filebno, uint32_t **ppdiskbno, bool all
 
 	if (filebno < NDIRECT) {
 		*ppdiskbno = &f->f_direct[filebno];
-	} else if (f->f_indirect) {
-		*ppdiskbno = &((uint32_t *) f->f_indirect)[filebno - NDIRECT];
-	} else if (alloc) {
-		int blockno = alloc_block();
-		if (blockno < 0) {
-			return -E_NO_DISK;
-		} else if (blockno == 0) {
-			return -E_NOT_FOUND;
+	} else {
+		if (f->f_indirect == 0) {
+			if (alloc) {
+				int blockno = alloc_block();
+				if (blockno < 0) {
+					return -E_NO_DISK;
+				}
+				f->f_indirect = blockno;
+				memset(diskaddr(blockno), 0, BLKSIZE);
+			} else {
+				return -E_NOT_FOUND;
+			}
 		}
 
-		memset((void *) f->f_indirect, 0, BLKSIZE);
-		*ppdiskbno = &((uint32_t *) f->f_indirect)[filebno - NDIRECT];
+		*ppdiskbno = &((uint32_t *) diskaddr(f->f_indirect))[filebno - NDIRECT];
 	}
 
 	return 0;
