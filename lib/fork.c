@@ -84,7 +84,7 @@ duppage(envid_t envid, unsigned pn)
 	// LAB 4: Your code here.
 	pte_t pte = uvpt[pn];
 	void *va = (void *) (pn * PGSIZE);
-	int perm = pte & 0xFFF;
+	int perm = pte & PTE_SYSCALL;
 
 	// use macro like a lambda function :P
 #define SYS_PAGE_MAP(src_env_id, dst_env_id, va, perm) do { \
@@ -95,7 +95,10 @@ duppage(envid_t envid, unsigned pn)
 	    } \
 	} while (0)
 
-	if ((perm & PTE_W) == PTE_W || (perm & PTE_COW) == PTE_COW) {
+	if ((perm & PTE_SHARE) == PTE_SHARE) {
+		perm = PTE_SHARE | PTE_W | PTE_U | PTE_P;
+		SYS_PAGE_MAP(thisenv->env_id, envid, va, perm);
+	} else if ((perm & PTE_W) == PTE_W || (perm & PTE_COW) == PTE_COW) {
 		// the permission must be the below,
 		// cannot be `perm = perm | PTE_COW`
 		perm = PTE_COW | PTE_U | PTE_P;

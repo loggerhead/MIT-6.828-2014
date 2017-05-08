@@ -301,6 +301,21 @@ static int
 copy_shared_pages(envid_t child)
 {
 	// LAB 5: Your code here.
+	uintptr_t p;
+	for (p = 0; p < UTOP; p += PGSIZE) {
+		int pdx = PDX(p);
+		int pgnum = PGNUM(p);
+		// check permission to avoid page fault
+		if ((uvpd[pdx] & PTE_P) == PTE_P &&
+		    (uvpt[pgnum] & PTE_P) == PTE_P &&
+		    (uvpt[pgnum] & PTE_SHARE) == PTE_SHARE) {
+			int perm = PTE_SHARE | PTE_W | PTE_U | PTE_P;
+			int r = sys_page_map(0, (void *) p, child, (void *) p, perm);
+			if (r < 0) {
+				panic("copy_shared_pages failed: sys_page_map(0x%x, %p, 0x%x, %p, 0x%x)",
+				      0, p, child, p, perm);
+			}
+		}
+	}
 	return 0;
 }
-
