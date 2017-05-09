@@ -67,6 +67,14 @@ struct Env {
 	uint32_t env_ipc_value;		// Data value sent to us
 	envid_t env_ipc_from;		// envid of the sender
 	int env_ipc_perm;		// Perm of page mapping received
+
+	// Challenge: a fixed-priority scheduler
+	// allows each environment to be assigned a priority and
+	// ensures that higher-priority environments are always
+	// chosen in preference to lower-priority environments.
+	//
+	// Default: 0
+	int priority;
 };
 
 #endif // !JOS_INC_ENV_H

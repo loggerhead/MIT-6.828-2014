@@ -122,3 +122,8 @@ sys_time_msec(void)
 {
 	return (unsigned int) syscall(SYS_time_msec, 0, 0, 0, 0, 0, 0);
 }
+
+// Challenge: a fixed-priority scheduler
+void sys_env_set_priority(int priority) {
+	syscall(SYS_env_set_priority, 0, priority, 0, 0, 0, 0);
+}
