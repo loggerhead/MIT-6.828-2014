@@ -4,6 +4,10 @@
 #include <kern/pci.h>
 #include <kern/pcireg.h>
 #include <kern/e1000.h>
+#include <kern/pmap.h>
+
+// the location of the virtual memory mapping for the E1000's BAR 0
+volatile uint32_t *attached_e1000;
 
 // Flag to do "lspci" at bootup
 static int pci_show_devs = 1;
@@ -260,6 +264,14 @@ pci_init(void)
 }
 
 int pci_attach_82540em(struct pci_func *f) {
+	// TODO: finish
 	pci_func_enable(f);
+	attached_e1000 = mmio_map_region(f->reg_base[0], f->reg_size[0]);
+
+	// printing out the device status register (section 13.4.2).
+	// This is a 4 byte register that starts at byte 8 of the register space.
+	// You should get 0x80080783, which indicates a full duplex link is up at 1000 MB/s,
+	// among other things.
+	cprintf("0x80080783 == 0x%08x\n", attached_e1000[2]);
 	return 0;
 }
