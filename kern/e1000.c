@@ -68,24 +68,33 @@ int send_data_at(void *addr, uint16_t len) {
 		return 0;
 	}
 
-	size_t n = len > PACKET_MAX_SIZE? PACKET_MAX_SIZE: len;
-
 	int next = *tdtr_ptr;
-	// checking that the next descriptor is free
-	if (is_td_free(next)) {
-		// copying the packet data into the next packet buffer
-		void *buffer = KADDR(tx_ring[next].addr);
-		memmove(buffer, addr, n);
-		tx_ring[next].length = n;
-		tx_ring[next].cmd |= TDESC_CMD_RS | TDESC_CMD_EOP;
-		tx_ring[next].status ^= TDESC_STATUS_DD;
-		// updating the TDT (transmit descriptor tail) register
-		*tdtr_ptr = (next + 1) % NTXDESC;
+	int remain = len;
 
-		return n;
-	// if the transmit queue is full
-	} else {
-		// simply drop the packet
-		return -E_SEND_QUEUE_FULL;
-	}
+	do {
+		size_t n = MIN(PACKET_MAX_SIZE, remain);
+		remain -= n;
+
+		// checking that the next descriptor is free
+		if (is_td_free(next)) {
+			// copying the packet data into the next packet buffer
+			void *buffer = KADDR(tx_ring[next].addr);
+			memmove(buffer, addr, n);
+			tx_ring[next].length = n;
+			if (remain > 0) {
+				tx_ring[next].cmd |= TDESC_CMD_RS;
+			} else {
+				tx_ring[next].cmd |= TDESC_CMD_RS | TDESC_CMD_EOP;
+			}
+			tx_ring[next].status ^= TDESC_STATUS_DD;
+			// updating the TDT (transmit descriptor tail) register
+			*tdtr_ptr = (next + 1) % NTXDESC;
+			// if the transmit queue is full
+		} else {
+			// simply drop the packet
+			return -E_SEND_QUEUE_FULL;
+		}
+	} while (remain > 0);
+
+	return len;
 }
