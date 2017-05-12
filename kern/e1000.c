@@ -59,9 +59,6 @@ int pci_attach_82540em(struct pci_func *f) {
 		tx_ring[i].status = TDESC_STATUS_DD;
 	}
 
-	// TODO: debug
-	int r = send_data_at("hello", 5);
-	cprintf("send out %d bytes\n", r);
 	return 0;
 }
 

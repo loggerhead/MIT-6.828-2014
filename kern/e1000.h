@@ -2,6 +2,7 @@
 #define JOS_KERN_E1000_H
 
 #include <inc/types.h>
+#include <kern/pci.h>
 
 // Transmit Descriptor
 #define TCTL   (0x00400 / 4)

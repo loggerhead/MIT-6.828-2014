@@ -20,6 +20,7 @@ enum {
 	SYS_time_msec,
 	// Challenge: a fixed-priority scheduler
 	SYS_env_set_priority,
+	SYS_send_data_at,
 	NSYSCALLS
 };
 

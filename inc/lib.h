@@ -62,6 +62,7 @@ int	sys_ipc_recv(void *rcv_pg);
 unsigned int sys_time_msec(void);
 // Challenge: a fixed-priority scheduler
 void    sys_env_set_priority(int priority);
+int     sys_send_data_at(void *addr, uint16_t len);
 
 // This must be inlined.  Exercise for reader: why?
 
