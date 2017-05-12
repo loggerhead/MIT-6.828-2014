@@ -1,3 +1,4 @@
+#include <inc/error.h>
 #include <inc/string.h>
 #include <kern/pci.h>
 #include <kern/e1000.h>
@@ -85,7 +86,6 @@ int send_data_at(void *addr, uint16_t len) {
 	// if the transmit queue is full
 	} else {
 		// simply drop the packet
-		// TODO: consider use a meaningful return value
-		return -1;
+		return -E_SEND_QUEUE_FULL;
 	}
 }

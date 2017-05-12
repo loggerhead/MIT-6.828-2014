@@ -26,6 +26,9 @@ enum {
 	E_NOT_EXEC	,	// File not a valid executable
 	E_NOT_SUPP	,	// Operation not supported
 
+	// Network error codes
+	E_SEND_QUEUE_FULL,      // No free space left on send queue
+
 	MAXERROR
 };
 
