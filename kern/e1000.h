@@ -100,5 +100,6 @@ struct rx_desc {
 
 int pci_attach_82540em(struct pci_func *pcif);
 int send_data_at(void *addr, uint16_t len);
+int recv_data_at(void *addr, uint16_t len);
 
 #endif	// JOS_KERN_E1000_H

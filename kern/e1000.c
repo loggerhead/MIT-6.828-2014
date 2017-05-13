@@ -6,15 +6,16 @@
 
 // the location of the virtual memory mapping for the E1000's BAR 0
 volatile uint32_t *attached_e1000;
+
 // Allocate a region of memory for the transmit descriptor list.
 // Software should insure this memory is aligned on a paragraph (16-byte) boundary.
 struct tx_desc tx_ring[NTXDESC] __attribute__ ((aligned (16)));
 char tx_desc_buffers[NTXDESC][TPACK_MAX_SIZE];
+
 // Allocate a region of memory for the receive descriptor list.
 // Software should insure this memory is aligned on a paragraph (16-byte) boundary.
 struct rx_desc rx_ring[NRXDESC] __attribute__ ((aligned (16)));
 char rx_desc_buffers[NTXDESC][RPACK_MAX_SIZE];
-
 
 #define TDTR_PTR (&attached_e1000[TDT])
 #define RDTR_PTR (&attached_e1000[RDT])
@@ -45,15 +46,27 @@ inline void set_mac_address() {
 	set_rah0(3, 0);
 }
 
+void init_transmit_registers();
+void init_tx_ring();
+void init_receive_registers();
+void init_rx_ring();
 
-// LAB 6: Your driver code here
 
 int pci_attach_82540em(struct pci_func *f) {
 	pci_func_enable(f);
 	attached_e1000 = mmio_map_region(f->reg_base[0], f->reg_size[0]);
 
-	// Transmit Initialization
+	init_transmit_registers();
+	// init transmit descriptor ring
+	init_tx_ring();
+	init_receive_registers();
+	// init receive descriptor ring
+	init_rx_ring();
 
+	return 0;
+}
+
+void init_transmit_registers() {
 	// The Transmit Descriptor Base Address of the region
 	// NOTICE: physical address!
 	attached_e1000[TDBAL] = PADDR(tx_ring);
@@ -78,17 +91,9 @@ int pci_attach_82540em(struct pci_func *f) {
 	attached_e1000[TIPG] = TIPG_IPGT(0xA)
 		| TIPG_IPGR1(0x8)
 		| TIPG_IPGR2(0xC);
+}
 
-	// init transmit descriptor ring
-	memset(tx_ring, 0, sizeof(tx_ring));
-	int i;
-	for (i = 0; i < NTXDESC; i++) {
-		tx_ring[i].addr = PADDR(tx_desc_buffers[i]);
-		tx_ring[i].status = TDESC_STATUS_DD;
-	}
-
-	// Receive Initialization
-
+void init_receive_registers() {
 	// setup RAL[0]/RAH[0] to store the MAC address of the Ethernet controller.
 	set_mac_address();
 	// Initialize the MTA (Multicast Table Array) to 0b
@@ -111,8 +116,15 @@ int pci_attach_82540em(struct pci_func *f) {
 		| RCTL_BAM(1)
 		| RCTL_BSIZE(0)
 		| RCTL_SECRC(1);
+}
 
-	return 0;
+void init_tx_ring() {
+	memset(tx_ring, 0, sizeof(tx_ring));
+	int i;
+	for (i = 0; i < NTXDESC; i++) {
+		tx_ring[i].addr = PADDR(tx_desc_buffers[i]);
+		tx_ring[i].status = TDESC_STATUS_DD;
+	}
 }
 
 int send_data_at(void *addr, uint16_t len) {
@@ -146,6 +158,32 @@ int send_data_at(void *addr, uint16_t len) {
 			// simply drop the packet
 			return -E_SEND_QUEUE_FULL;
 		}
+	} while (remain > 0);
+
+	return len;
+}
+
+// TODO: finish
+void init_rx_ring() {
+	memset(rx_ring, 0, sizeof(rx_ring));
+	int i;
+	for (i = 0; i < NRXDESC; i++) {
+		rx_ring[i].addr = PADDR(rx_desc_buffers[i]);
+		/* rx_ring[i].status = RDESC_STATUS_DD; */
+	}
+}
+
+// TODO: finish
+int recv_data_at(void *addr, uint16_t len) {
+	if (addr == NULL || len == 0) {
+		return 0;
+	}
+
+	int next = *RDTR_PTR;
+	int remain = len;
+
+	do {
+
 	} while (remain > 0);
 
 	return len;
