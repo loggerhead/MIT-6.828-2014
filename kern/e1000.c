@@ -25,6 +25,14 @@ inline int is_td_free(int index) {
 	return (tx_ring[index].status & TDESC_STATUS_DD) == TDESC_STATUS_DD;
 }
 
+inline int is_rd_used(int index) {
+	return (rx_ring[index].status & RDESC_STATUS_DD) == RDESC_STATUS_DD;
+}
+
+inline int is_rd_eop(int index) {
+	return (rx_ring[index].status & RDESC_STATUS_EOP) == RDESC_STATUS_EOP;
+}
+
 inline void set_ral0(int i, uint8_t byte) {
 	((char *) &attached_e1000[RAL(0)])[i] = byte;
 }
@@ -136,21 +144,23 @@ int send_data_at(void *addr, uint16_t len) {
 	int remain = len;
 
 	do {
-		size_t n = MIN(TPACK_MAX_SIZE, remain);
-		remain -= n;
-
 		// checking that the next descriptor is free
 		if (is_td_free(next)) {
+			char *buffer = KADDR(tx_ring[next].addr);
+			size_t n = MIN(TPACK_MAX_SIZE, remain);
+
 			// copying the packet data into the next packet buffer
-			void *buffer = KADDR(tx_ring[next].addr);
-			memmove(buffer, addr, n);
+			memmove(buffer, addr + len - remain, n);
 			tx_ring[next].length = n;
+			remain -= n;
+
 			if (remain > 0) {
 				tx_ring[next].cmd |= TDESC_CMD_RS;
 			} else {
 				tx_ring[next].cmd |= TDESC_CMD_RS | TDESC_CMD_EOP;
 			}
 			tx_ring[next].status ^= TDESC_STATUS_DD;
+
 			// updating the TDT (transmit descriptor tail) register
 			*TDTR_PTR = (next + 1) % NTXDESC;
 			// if the transmit queue is full
@@ -163,17 +173,16 @@ int send_data_at(void *addr, uint16_t len) {
 	return len;
 }
 
-// TODO: finish
 void init_rx_ring() {
 	memset(rx_ring, 0, sizeof(rx_ring));
 	int i;
 	for (i = 0; i < NRXDESC; i++) {
 		rx_ring[i].addr = PADDR(rx_desc_buffers[i]);
-		/* rx_ring[i].status = RDESC_STATUS_DD; */
 	}
 }
 
-// TODO: finish
+// return received length,
+// if no data available, return -(received length)
 int recv_data_at(void *addr, uint16_t len) {
 	if (addr == NULL || len == 0) {
 		return 0;
@@ -183,7 +192,30 @@ int recv_data_at(void *addr, uint16_t len) {
 	int remain = len;
 
 	do {
+		if (is_rd_used(next)) {
+			char *buffer = KADDR(rx_ring[next].addr);
+			size_t n = MIN(rx_ring[next].length, len);
 
+			memmove(addr + len - remain, buffer, n);
+			remain -= n;
+
+			// if not consume entire buffer
+			if (n < rx_ring[next].length) {
+				rx_ring[next].length -= n;
+				memmove(buffer, buffer + n, rx_ring[next].length);
+			} else {
+				int is_eop = is_rd_eop(next);
+				rx_ring[next].status = 0;
+				rx_ring[next].length = 0;
+				*RDTR_PTR = (next + 1) / NRXDESC;
+				// if is the End Of Packet descriptor
+				if (is_eop) {
+					return len - remain;
+				}
+			}
+		} else {
+			return -(len - remain);
+		}
 	} while (remain > 0);
 
 	return len;

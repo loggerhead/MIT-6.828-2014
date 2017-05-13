@@ -52,9 +52,11 @@ enum {
 #define RCTL_BSIZE(x) ((x) << 16)
 #define RCTL_SECRC(x) ((x) << 26)
 
-#define TDESC_CMD_RS    (1 << 3)
-#define TDESC_CMD_EOP   1
-#define TDESC_STATUS_DD 1
+#define TDESC_CMD_RS     (1 << 3)
+#define TDESC_CMD_EOP    1
+#define TDESC_STATUS_DD  1
+#define RDESC_STATUS_DD  1
+#define RDESC_STATUS_EOP (1 << 1)
 
 #define NTXDESC 32
 #define NRXDESC 256

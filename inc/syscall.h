@@ -21,6 +21,7 @@ enum {
 	// Challenge: a fixed-priority scheduler
 	SYS_env_set_priority,
 	SYS_send_data_at,
+	SYS_recv_data_at,
 	NSYSCALLS
 };
 
