@@ -57,6 +57,7 @@ enum {
 #define TDESC_STATUS_DD  1
 #define RDESC_STATUS_DD  1
 #define RDESC_STATUS_EOP (1 << 1)
+#define RAH_AV           (1 << 31)
 
 #define NTXDESC 32
 #define NRXDESC 256
@@ -99,9 +100,15 @@ struct rx_desc {
 	uint16_t special;
 } __attribute__((packed));
 
+struct recv_res {
+	int is_eop;
+	uint32_t nread;
+	uint16_t offset;
+};
+
 
 int pci_attach_82540em(struct pci_func *pcif);
 int send_data_at(void *addr, uint16_t len);
-int recv_data_at(void *addr, uint16_t len);
+int recv_data_at(void *addr, uint16_t len, struct recv_res *res);
 
 #endif	// JOS_KERN_E1000_H

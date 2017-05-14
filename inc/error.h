@@ -28,6 +28,7 @@ enum {
 
 	// Network error codes
 	E_SEND_QUEUE_FULL,      // No free space left on send queue
+	E_RECV_QUEUE_EMPTY,      // No free space left on send queue
 
 	MAXERROR
 };

@@ -33,25 +33,13 @@ inline int is_rd_eop(int index) {
 	return (rx_ring[index].status & RDESC_STATUS_EOP) == RDESC_STATUS_EOP;
 }
 
-inline void set_ral0(int i, uint8_t byte) {
-	((char *) &attached_e1000[RAL(0)])[i] = byte;
-}
-
-inline void set_rah0(int i, uint8_t byte) {
-	((char *) &attached_e1000[RAH(0)])[i] = byte;
-}
-
 // simply hard-code QEMU's default MAC address of 52:54:00:12:34:56
 inline void set_mac_address() {
-	set_ral0(0, 0x52);
-	set_ral0(1, 0x54);
-	set_ral0(2, 0x00);
-	set_ral0(3, 0x12);
-
-	set_rah0(0, 0x34);
-	set_rah0(1, 0x56);
-	set_rah0(2, 0);
-	set_rah0(3, 0);
+	uint16_t x = 0x1234;
+	// assert big endian
+	assert(*(char *) &x == 0x34);
+	attached_e1000[RAL(0)] = 0x12005452;
+	attached_e1000[RAH(0)] = 0x00005634 | RAH_AV;
 }
 
 void init_transmit_registers();
@@ -114,14 +102,13 @@ void init_receive_registers() {
 	attached_e1000[RDLEN] = sizeof(rx_ring);
 	// Receive Descriptor Head and Tail
 	// Head point to the first valid receive descriptor
-	attached_e1000[RDH] = PADDR(rx_ring);
+	attached_e1000[RDH] = 0;
 	// Tail point to one descriptor beyond the last valid descriptor
-	attached_e1000[RDT] = PADDR(rx_ring + NRXDESC);
+	attached_e1000[RDT] = NRXDESC;
 	// Receive Control (RCTL) register
 	attached_e1000[RCTL] = RCTL_EN(1)
 		| RCTL_LPE(0)
 		| RCTL_LBM(0)
-		| RCTL_BAM(1)
 		| RCTL_BSIZE(0)
 		| RCTL_SECRC(1);
 }
@@ -181,42 +168,37 @@ void init_rx_ring() {
 	}
 }
 
-// return received length,
-// if no data available, return -(received length)
-int recv_data_at(void *addr, uint16_t len) {
+// return received length or error code
+int recv_data_at(void *addr, uint16_t len, struct recv_res *res) {
 	if (addr == NULL || len == 0) {
 		return 0;
 	}
 
-	int next = *RDTR_PTR;
-	int remain = len;
+	int next = *RDTR_PTR % NRXDESC;
+	int nread = 0;
 
 	do {
 		if (is_rd_used(next)) {
 			char *buffer = KADDR(rx_ring[next].addr);
-			size_t n = MIN(rx_ring[next].length, len);
+			size_t n = MIN(rx_ring[next].length - res->offset, len - res->nread);
 
-			memmove(addr + len - remain, buffer, n);
-			remain -= n;
+			memmove(addr + res->nread, buffer + res->offset, n);
+			nread += n;
+			res->nread += n;
+			res->offset += n;
 
 			// if not consume entire buffer
-			if (n < rx_ring[next].length) {
-				rx_ring[next].length -= n;
-				memmove(buffer, buffer + n, rx_ring[next].length);
-			} else {
-				int is_eop = is_rd_eop(next);
+			if (res->offset >= rx_ring[next].length) {
+				res->is_eop = is_rd_eop(next);
+				res->offset = 0;
 				rx_ring[next].status = 0;
 				rx_ring[next].length = 0;
-				*RDTR_PTR = (next + 1) / NRXDESC;
-				// if is the End Of Packet descriptor
-				if (is_eop) {
-					return len - remain;
-				}
+				*RDTR_PTR = (next + 1) % NRXDESC;
 			}
 		} else {
-			return -(len - remain);
+			return -E_RECV_QUEUE_EMPTY;
 		}
-	} while (remain > 0);
+	} while (res->nread < len && !res->is_eop);
 
-	return len;
+	return nread;
 }

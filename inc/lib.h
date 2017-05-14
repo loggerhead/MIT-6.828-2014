@@ -22,6 +22,7 @@
 #include <inc/args.h>
 #include <inc/malloc.h>
 #include <inc/ns.h>
+#include <kern/e1000.h>
 
 #define USED(x)		(void)(x)
 
@@ -63,7 +64,7 @@ unsigned int sys_time_msec(void);
 // Challenge: a fixed-priority scheduler
 void    sys_env_set_priority(int priority);
 int     sys_send_data_at(void *addr, uint16_t len);
-int     sys_recv_data_at(void *addr, uint16_t len);
+int     sys_recv_data_at(void *addr, uint16_t len, struct recv_res *res);
 
 // This must be inlined.  Exercise for reader: why?
 

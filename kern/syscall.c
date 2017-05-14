@@ -471,8 +471,8 @@ int sys_send_data_at(void *addr, uint16_t len) {
 	return send_data_at(addr, len);
 }
 
-int sys_recv_data_at(void *addr, uint16_t len) {
-	return recv_data_at(addr, len);
+int sys_recv_data_at(void *addr, uint16_t len, struct recv_res *res) {
+	return recv_data_at(addr, len, res);
 }
 
 // Dispatches to the correct kernel function, passing the arguments.
@@ -522,7 +522,7 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 	case SYS_send_data_at:
 		return sys_send_data_at((void *) a1, a2);
 	case SYS_recv_data_at:
-		return sys_recv_data_at((void *) a1, a2);
+		return sys_recv_data_at((void *) a1, a2, (struct recv_res *) a3);
 	default:
 		return -E_INVAL;
 	}

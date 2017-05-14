@@ -36,6 +36,7 @@ static const char * const error_string[MAXERROR] =
 	[E_NOT_EXEC]	= "file is not a valid executable",
 	[E_NOT_SUPP]	= "operation not supported",
 	[E_SEND_QUEUE_FULL]  = "no free space on send queue",
+	[E_RECV_QUEUE_EMPTY] = "no available descriptor on receive queue",
 };
 
 /*

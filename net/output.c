@@ -11,8 +11,9 @@ output(envid_t ns_envid)
 	// LAB 6: Your code here:
 	// 	- read a packet from the network server
 	//	- send the packet to the device driver
+	int r;
 	for (;;) {
-		int r = ipc_recv(NULL, &nsipcbuf, NULL);
+		r = ipc_recv(NULL, &nsipcbuf, NULL);
 		if (r < 0) {
 			panic("output failed: ipc_recv failed with %e", r);
 		}
