@@ -21,7 +21,8 @@
 	XX(RAL_BASE, 0x05400)			\
 	XX(RAH_BASE, 0x05404)			\
 	XX(MTA_BASE, 0x05200)			\
-	XX(IMS     , 0x000D0)
+	XX(IMS     , 0x000D0)			\
+	XX(EERD    , 0x00014)
 
 enum {
 #define XX(NAME, OFFSET) NAME = ((OFFSET) / 4),
@@ -46,11 +47,12 @@ enum {
 #define RCTL_EN(x)    ((x) << 1)
 #define RCTL_LPE(x)   ((x) << 5)
 #define RCTL_LBM(x)   ((x) << 6)
-#define RCTL_RDMTS(x) ((x) << 8)
-#define RCTL_MO(x)    ((x) << 12)
-#define RCTL_BAM(x)   ((x) << 15)
 #define RCTL_BSIZE(x) ((x) << 16)
 #define RCTL_SECRC(x) ((x) << 26)
+// EEPROM Read register
+#define EERD_START(x) (x)
+#define EERD_DONE(x)  ((x) << 4)
+#define EERD_ADDR(x)  ((x) << 8)
 
 #define TDESC_CMD_RS     (1 << 3)
 #define TDESC_CMD_EOP    1

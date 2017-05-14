@@ -17,9 +17,12 @@ char tx_desc_buffers[NTXDESC][TPACK_MAX_SIZE];
 struct rx_desc rx_ring[NRXDESC] __attribute__ ((aligned (16)));
 char rx_desc_buffers[NTXDESC][RPACK_MAX_SIZE];
 
+uint16_t mac_address[3];
+
 #define TDTR_PTR (&attached_e1000[TDT])
 #define RDTR_PTR (&attached_e1000[RDT])
 
+void read_eeprom();
 
 inline int is_td_free(int index) {
 	return (tx_ring[index].status & TDESC_STATUS_DD) == TDESC_STATUS_DD;
@@ -34,12 +37,19 @@ inline int is_rd_eop(int index) {
 }
 
 // simply hard-code QEMU's default MAC address of 52:54:00:12:34:56
-inline void set_mac_address() {
+inline void init_mac_address() {
 	uint16_t x = 0x1234;
 	// assert big endian
 	assert(*(char *) &x == 0x34);
-	attached_e1000[RAL(0)] = 0x12005452;
-	attached_e1000[RAH(0)] = 0x00005634 | RAH_AV;
+
+	// hard-code mac address
+	// attached_e1000[RAL(0)] = 0x12005452;
+	// attached_e1000[RAH(0)] = 0x00005634 | RAH_AV;
+
+	// read mac address from EEPROM
+	read_eeprom();
+	attached_e1000[RAL(0)] = mac_address[0] | (mac_address[1] << 16);
+	attached_e1000[RAH(0)] = mac_address[2] | RAH_AV;
 }
 
 void init_transmit_registers();
@@ -91,7 +101,7 @@ void init_transmit_registers() {
 
 void init_receive_registers() {
 	// setup RAL[0]/RAH[0] to store the MAC address of the Ethernet controller.
-	set_mac_address();
+	init_mac_address();
 	// Initialize the MTA (Multicast Table Array) to 0b
 	memset((void *) &attached_e1000[MTA_BASE], 0, MTA_SIZE);
 	// For now, don't configure the card to use interrupts
@@ -201,4 +211,16 @@ int recv_data_at(void *addr, uint16_t len, struct recv_res *res) {
 	} while (res->nread < len && !res->is_eop);
 
 	return nread;
+}
+
+// Challenge: load the E1000's MAC address out of the EEPROM
+void read_eeprom() {
+	int i;
+	for (i = 0x00; i <= 0x02; i++) {
+		attached_e1000[EERD] = EERD_ADDR(i) | EERD_START(1);
+		while (EERD_DONE(1) != (attached_e1000[EERD] & EERD_DONE(1))) {
+			;
+		}
+		mac_address[i] = attached_e1000[EERD] >> 16;
+	}
 }
