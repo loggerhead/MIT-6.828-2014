@@ -22,4 +22,5 @@ Thanks for the following references, they are very helpful to do the labs.
 
 * https://github.com/petroav/6.828
 * https://github.com/Clann24/jos
-* http://zipeng.me/blog/2013/03/09/jos-lab1/
+* http://zipeng.me/blog/2013/03/09/jos-lab1
+* [Protected-Mode Address Translation.pdf](https://github.com/loggerhead/MIT-6.828-2014/blob/lab2/Protected-Mode%20Address%20Translation.pdf)
